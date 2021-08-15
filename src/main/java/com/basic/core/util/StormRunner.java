@@ -3,16 +3,15 @@ package com.basic.core.util;
 //import backtype.storm.Config;
 //import backtype.storm.LocalCluster;
 //import static backtype.storm.StormSubmitter.submitTopology;
+import static org.apache.storm.StormSubmitter.submitTopology;
 
+//import backtype.storm.generated.StormTopology;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.StormTopology;
 
-import static org.apache.storm.StormSubmitter.submitTopology;
-
-//import backtype.storm.generated.StormTopology;
-
-public final class StormRunner {
+public final class StormRunner
+{
     private static final int MILLIS_IN_SEC = 1000;
 
     public static void runLocally(String topologyName, StormTopology topology,
@@ -25,7 +24,7 @@ public final class StormRunner {
     }
 
     public static void runInCluster(String topologyName,
-                                    StormTopology topology, Config conf) throws Exception {
+            StormTopology topology, Config conf) throws Exception {
         submitTopology(topologyName, conf, topology);
     }
 }

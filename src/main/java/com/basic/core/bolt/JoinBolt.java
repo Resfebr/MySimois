@@ -1,10 +1,12 @@
 package com.basic.core.bolt;
 
-import com.basic.core.util.FileWriter;
-import com.basic.core.util.Stopwatch;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Multimap;
+import java.text.DecimalFormat;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.storm.task.TopologyContext;
@@ -15,24 +17,34 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
-
-import java.text.DecimalFormat;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-
-import static com.basic.core.util.CastUtils.*;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Lists.newLinkedList;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class JoinBolt extends BaseBasicBolt {
+import static com.google.common.base.Preconditions.checkState;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+import static com.google.common.collect.Lists.newLinkedList;
+
+//import backtype.storm.task.TopologyContext;
+//import backtype.storm.topology.BasicOutputCollector;
+//import backtype.storm.topology.OutputFieldsDeclarer;
+//import backtype.storm.topology.base.BaseBasicBolt;
+//import backtype.storm.tuple.Fields;
+//import backtype.storm.tuple.Tuple;
+//import backtype.storm.tuple.Values;
+import com.basic.core.util.FileWriter;
+import com.basic.core.util.Stopwatch;
+import static com.basic.core.util.CastUtils.getBoolean;
+import static com.basic.core.util.CastUtils.getInt;
+import static com.basic.core.util.CastUtils.getList;
+import static com.basic.core.util.CastUtils.getLong;
+import static com.basic.core.util.CastUtils.getString;
+
+public class JoinBolt extends BaseBasicBolt
+{
 
     private static final List<String> SCHEMA = ImmutableList.of("relation",
             "timestamp", "key", "value");
-
     private static final long PROFILE_REPORT_PERIOD_IN_SEC = 1;
     private static final int BYTES_PER_TUPLE_R = 64;
     private static final int BYTES_PER_TUPLE_S = 56;
@@ -41,25 +53,7 @@ public class JoinBolt extends BaseBasicBolt {
     private static final Logger LOG = getLogger(JoinBolt.class);
 
     private final String _rel;
-    private int _tid;
-    private FileWriter _output;
-    private int _thisJoinFieldIdx;
-    private int _oppJoinFieldIdx;
-    private String _operator;
-    private boolean _window;
-    private long _thisWinSize;
-    private long _oppWinSize;
-    private int _subindexSize;
-    private Queue<Pair> _indexQueue;
-    private Multimap<Object, Values> _currMap;
-    private long _profileReportInSeconds;
-    private long _triggerReportInSeconds;
-    private Stopwatch _stopwatch;
-    private DecimalFormat _df;
-    private long _tuplesStored;
-    private long _tuplesJoined;
-    private int _thisTupleSize;
-    private int _oppTupleSize;
+
     public JoinBolt(String relation) {
         super();
         _rel = relation;
@@ -67,6 +61,32 @@ public class JoinBolt extends BaseBasicBolt {
         checkState(_rel.equals("R") || _rel.equals("S"), "Unknown relation: "
                 + _rel);
     }
+
+    private int _tid;
+
+    private FileWriter _output;
+
+    private int _thisJoinFieldIdx;
+    private int _oppJoinFieldIdx;
+    private String _operator;
+
+    private boolean _window;
+    private long _thisWinSize;
+    private long _oppWinSize;
+
+    private int _subindexSize;
+    private Queue<Pair> _indexQueue;
+    private Multimap<Object, Values> _currMap;
+
+    private long _profileReportInSeconds;
+    private long _triggerReportInSeconds;
+    private Stopwatch _stopwatch;
+    private DecimalFormat _df;
+
+    private long _tuplesStored;
+    private long _tuplesJoined;
+    private int _thisTupleSize;
+    private int _oppTupleSize;
 
     @Override
     public void prepare(Map conf, TopologyContext context) {
@@ -113,7 +133,8 @@ public class JoinBolt extends BaseBasicBolt {
                     , tuple.getLongByField("timestamp")
                     , tuple.getIntegerByField("key")
                     , tuple.getStringByField("value")));
-        } else { // rel.equals(Opp(_rel))
+        }
+        else { // rel.equals(Opp(_rel))
             join(tuple, collector);
             ++_tuplesJoined;
         }
@@ -180,15 +201,14 @@ public class JoinBolt extends BaseBasicBolt {
     }
 
     private void join(Tuple tupleOpp, Object index,
-                      BasicOutputCollector collector) {
+            BasicOutputCollector collector) {
         int key = tupleOpp.getIntegerByField("key");
-        int value = tupleOpp.getIntegerByField("value");
 
-        //-------------------value ？--------------------
         for (Values record : getMatchings(index, key)) {
             if (_rel.equals("R")) {
                 output("R: " + value + " ---- " + tupleOpp.getStringByField("value"));
-            } else { // _rel.equals("S")
+            }
+            else { // _rel.equals("S")
                 output("S: " + tupleOpp.getStringByField("value") + " ---- " + value);
             }
         }
@@ -221,7 +241,8 @@ public class JoinBolt extends BaseBasicBolt {
 
         if (tsDiff >= 0) {
             return (tsDiff <= _thisWinSize);
-        } else {
+        }
+        else {
             return (-tsDiff <= _oppWinSize);
         }
     }
@@ -232,7 +253,8 @@ public class JoinBolt extends BaseBasicBolt {
         if (currTime >= _triggerReportInSeconds) {
             _triggerReportInSeconds = currTime + _profileReportInSeconds;
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }

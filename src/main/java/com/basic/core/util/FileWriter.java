@@ -1,19 +1,24 @@
 package com.basic.core.util;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
+
+//import static org.apache.commons.io.FilenameUtils.getFullPath;
+//import static org.apache.commons.io.FilenameUtils.normalize;
 import org.slf4j.Logger;
 
-import java.io.*;
-
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.io.Files.newWriter;
 import static org.apache.commons.io.FilenameUtils.getFullPath;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.slf4j.LoggerFactory.getLogger;
 
-//import static org.apache.commons.io.FilenameUtils.getFullPath;
-//import static org.apache.commons.io.FilenameUtils.normalize;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.io.Files.newWriter;
 
-public class FileWriter {
+public class FileWriter
+{
     private static final int DEFAULT_FLUSH_SIZE = 512;
     private static final Logger LOG = getLogger(FileWriter.class);
 
@@ -42,7 +47,7 @@ public class FileWriter {
     }
 
     public FileWriter(String dir, String prefix, String suffix,
-                      boolean overwrite) {
+            boolean overwrite) {
         _filename = constructFilename(dir, prefix, suffix);
         _writer = getWriter(overwrite);
     }
@@ -57,12 +62,14 @@ public class FileWriter {
 
         if (dir == null) {
             filename = null;
-        } else {
+        }
+        else {
             filename = (dir.isEmpty() ? "." : dir) + "/";
 
             if (prefix == null || prefix.isEmpty()) {
                 filename += "";
-            } else {
+            }
+            else {
                 filename += prefix + "_";
             }
             filename += TimeUtils.getTimestamp();
@@ -89,11 +96,13 @@ public class FileWriter {
                 createNewFile(file);
                 LOG.info("Overwriting existing file: " + _filename);
                 writer = getWriter(file);
-            } else {
+            }
+            else {
                 LOG.error("File exists (not overwriting): " + _filename);
                 writer = null;
             }
-        } else {
+        }
+        else {
             createNewFile(file);
             LOG.debug("New file created: " + _filename);
             writer = getWriter(file);
@@ -106,7 +115,8 @@ public class FileWriter {
         BufferedWriter writer = null;
         try {
             writer = newWriter(file, UTF_8);
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             LOG.error(e.getMessage());
         }
 
@@ -121,7 +131,8 @@ public class FileWriter {
     private void createNewFile(File file) {
         try {
             file.createNewFile();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             LOG.error(e.getMessage());
         }
     }
@@ -144,7 +155,8 @@ public class FileWriter {
         if (_writer != null) {
             try {
                 _writer.append(msg + "\n");
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 LOG.error(e.getMessage());
             }
 
@@ -157,7 +169,8 @@ public class FileWriter {
             if (immediate || (_count % _flushSize == 0)) {
                 try {
                     _writer.flush();
-                } catch (IOException e) {
+                }
+                catch (IOException e) {
                     LOG.error(e.getMessage());
                 }
             }

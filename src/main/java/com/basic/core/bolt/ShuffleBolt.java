@@ -1,24 +1,34 @@
 package com.basic.core.bolt;
 
-import com.basic.core.util.FileWriter;
-import com.basic.core.util.GeoHash;
-import com.basic.core.util.Stopwatch;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.ImmutableList;
+import static com.google.common.collect.Lists.newArrayList;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
+import org.apache.storm.Constants;
+import com.basic.core.util.FileWriter;
+import com.basic.core.util.GeoHash;
+import com.basic.core.util.Stopwatch;
 
-import java.util.List;
-import java.util.Map;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static com.basic.core.util.CastUtils.getList;
 
 public class
-ShuffleBolt extends BaseRichBolt {
-    private static final List<String> SCHEMA = ImmutableList.of("relation", "timestamp", "key", "value");
+ShuffleBolt extends BaseRichBolt
+{
     private OutputCollector _collector;
+    private static final List<String> SCHEMA = ImmutableList.of("relation", "timestamp", "key", "value");
     private FileWriter _output;
     private long _r;
     private long _s;
@@ -26,12 +36,10 @@ ShuffleBolt extends BaseRichBolt {
     private Stopwatch _stopwatch;
     private String _rStream;
     private String _sStream;
-
-    public ShuffleBolt(String datasize) {
+    public ShuffleBolt(String datasize){
         _rStream = "didiOrder" + datasize;
         _sStream = "didiGps" + datasize;
     }
-
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
         this._collector = outputCollector;
@@ -46,25 +54,24 @@ ShuffleBolt extends BaseRichBolt {
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declare(new Fields(SCHEMA));
     }
-
     @Override
     public void execute(Tuple tuple) {
         String topic = tuple.getStringByField("topic");
         String value = tuple.getStringByField("value");
         String rel;
         Long ts = System.currentTimeMillis();
-        String[] cols = value.split(",");
+        String []cols = value.split(",");
         //output(value);
         String key = "";
-        if (topic.equals(_rStream)) {
+        if(topic.equals(_rStream)) {
             rel = "R";
             //cols[1] is order id
-            key = GeoHash.encode(Double.parseDouble(cols[4]), Double.parseDouble(cols[3]), 7).toHashString();
-            _r++;
-        } else if (topic.equals(_sStream)) {
+            key = GeoHash.encode(Double.parseDouble(cols[4]), Double.parseDouble(cols[3]),7).toHashString();
+            _r ++;
+        } else if(topic.equals(_sStream)) {
             rel = "S";
             //cols[0] is order id
-            key = GeoHash.encode(Double.parseDouble(cols[4]), Double.parseDouble(cols[3]), 7).toHashString();
+            key = GeoHash.encode(Double.parseDouble(cols[4]), Double.parseDouble(cols[3]),7).toHashString();
             _s++;
         } else {
             rel = "false";
@@ -73,14 +80,12 @@ ShuffleBolt extends BaseRichBolt {
     }
 
     private void output(String msg) {
-        if (_output != null) {
-            _output.write(msg);
-            //_output.writeImmediately(msg);
-
+        if (_output != null){
+            //_output.write(msg);
+            _output.writeImmediately(msg);
         }
 
     }
-
     @Override
     public void cleanup() {
         if (_output != null) {

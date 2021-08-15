@@ -15,7 +15,7 @@ public abstract class BinaryComparable implements Comparable<BinaryComparable> {
     public abstract byte[] getBytes();
 
     public int compareTo(BinaryComparable other) {
-        return this == other ? 0 : WritableComparator.compareBytes(this.getBytes(), 0, this.getLength(), other.getBytes(), 0, other.getLength());
+        return this == other?0: WritableComparator.compareBytes(this.getBytes(), 0, this.getLength(), other.getBytes(), 0, other.getLength());
     }
 
     public int compareTo(byte[] other, int off, int len) {
@@ -23,11 +23,11 @@ public abstract class BinaryComparable implements Comparable<BinaryComparable> {
     }
 
     public boolean equals(Object other) {
-        if (!(other instanceof BinaryComparable)) {
+        if(!(other instanceof BinaryComparable)) {
             return false;
         } else {
-            BinaryComparable that = (BinaryComparable) other;
-            return this.getLength() != that.getLength() ? false : this.compareTo(that) == 0;
+            BinaryComparable that = (BinaryComparable)other;
+            return this.getLength() != that.getLength()?false:this.compareTo(that) == 0;
         }
     }
 

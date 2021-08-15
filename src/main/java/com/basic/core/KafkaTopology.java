@@ -1,64 +1,67 @@
 package com.basic.core;
 
-import com.basic.core.bolt.JoinBolt;
-import com.basic.core.bolt.PostProcessBolt;
-import com.basic.core.bolt.ShuffleBolt;
-import com.basic.core.util.FileWriter;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import com.basic.core.Constraints;
+import com.basic.core.SchedulingTopologyBuilder;
+import com.basic.core.util.MyScheme;
 import org.apache.storm.Config;
+import org.apache.storm.LocalCluster;
+import org.apache.storm.StormSubmitter;
+import org.apache.storm.generated.AlreadyAliveException;
+import org.apache.storm.generated.AuthorizationException;
+import org.apache.storm.generated.InvalidTopologyException;
+import org.apache.storm.kafka.BrokerHosts;
+import org.apache.storm.kafka.KafkaSpout;
+import org.apache.storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.ZkHosts;
+import org.apache.storm.spout.SchemeAsMultiScheme;
+import org.apache.storm.tuple.Fields;
+import org.apache.storm.utils.Utils;
+import com.esotericsoftware.minlog.Log;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.storm.generated.StormTopology;
-//import org.apache.storm.kafka.spout.*;
 import org.apache.storm.kafka.spout.*;
-import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 
-import static com.basic.core.Constraints.SCHEDULER_BOLT_ID;
-import static com.basic.core.util.LogHelpers.logTopology;
-import static com.basic.core.util.StormRunner.runInCluster;
-import static com.basic.core.util.StormRunner.runLocally;
 import static org.apache.storm.kafka.spout.KafkaSpoutConfig.FirstPollOffsetStrategy.EARLIEST;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class KafkaTopology {
-    public static final String KAFKA_SPOUT_ID_R = "kafka-spout-r";
-    public static final String KAFKA_SPOUT_ID_S = "kafka-spout-s";
-    //public static final String KAFKA_TEST_BOLT_ID = "kafka-test";
-    //public static final String KAFKA_BROKER = "node24:9092,node25:9092,node26:9092,node27:9092,node28:9092";
-    public static final String KAFKA_BROKER = "nimbus:9092,zookeeper1:9092,zookeeper2:9092";
+import org.apache.storm.Config;
+import org.apache.storm.topology.TopologyBuilder;
+import com.basic.core.bolt.*;
+import com.basic.core.core.ContRandGrouping;
+import com.basic.core.core.FastJoinGrouping;
+import com.basic.core.util.FileWriter;
+
+import java.util.Arrays;
+import java.util.HashMap;
+
+import static com.basic.core.util.LogHelpers.logTopology;
+import static com.basic.core.util.StormRunner.runInCluster;
+import static com.basic.core.util.StormRunner.runLocally;
+
+import static com.basic.core.Constraints.SCHEDULER_BOLT_ID;
+
+public class KafkaTopology
+{
     private static final Logger LOG = getLogger(KafkaTopology.class);
     private static final String SHUFFLE_BOLT_ID = "shuffler";
     private static final String RESHUFFLE_BOLT_ID = "reshuffler";
     private static final String JOINER_R_BOLT_ID = "joiner-r";
     private static final String JOINER_S_BOLT_ID = "joiner-s";
     private static final String POST_PROCESS_BOLT_ID = "gatherer";
-    public static final String JOINER_TO_POST_STREAM_ID = "joiner-post-stream";
     private static final String AGGREGATE_BOLT_ID = "aggregator";
+
+    public static final String KAFKA_SPOUT_ID_R ="kafka-spout-r";
+    public static final String KAFKA_SPOUT_ID_S ="kafka-spout-s";
+    //public static final String KAFKA_TEST_BOLT_ID = "kafka-test";
+//    public static final String KAFKA_BROKER = "node24:9092,node25:9092,node26:9092,node27:9092,node28:9092";
+    public static final String KAFKA_BROKER = "node95:9092,node96:9092,node97:9092,node98:9092,node99:9092";
+
+
+
     private final TopologyArgs _args = new TopologyArgs("KafkaTopology");
-
-    public static void main(String[] args) throws Exception {
-        int rc = (new KafkaTopology()).run(args);
-        LOG.info("return code: " + rc);
-    }
-
-    public static KafkaSpoutConfig<String, String> getKafkaSpoutConfig(String bootstrapServers, String topic, String groupid) {
-        ByTopicRecordTranslator<String, String> trans = new ByTopicRecordTranslator<>(
-                (r) -> new Values(r.topic(), r.partition(), r.offset(), r.key(), r.value()),
-                new Fields("topic", "partition", "offset", "key", "value"));
-        return KafkaSpoutConfig.builder(bootstrapServers, new String[]{topic})
-                .setProp(ConsumerConfig.GROUP_ID_CONFIG, groupid)
-                .setRetry(getRetryService())
-                .setRecordTranslator(trans)
-                .setFirstPollOffsetStrategy(EARLIEST)
-                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
-                .build();
-    }
-
-    public static KafkaSpoutRetryService getRetryService() {
-        return new KafkaSpoutRetryExponentialBackoff(KafkaSpoutRetryExponentialBackoff.TimeInterval.microSeconds(0),
-                KafkaSpoutRetryExponentialBackoff.TimeInterval.milliSeconds(2), Integer.MAX_VALUE, KafkaSpoutRetryExponentialBackoff.TimeInterval.seconds(10));
-    }
 
     public int run(String[] args) throws Exception {
         if (!_args.processArgs(args))
@@ -87,7 +90,8 @@ public class KafkaTopology {
         if (_args.remoteMode) {
             LOG.info("execution mode: remote");
             runInCluster(_args.topologyName, topology, conf);
-        } else {
+        }
+        else {
             LOG.info("execution mode: local");
             writeSettingsToFile();
             runLocally(_args.topologyName, topology, conf, _args.localRuntime);
@@ -97,8 +101,8 @@ public class KafkaTopology {
     }
 
     private StormTopology createTopology() {
-        //TopologyBuilder builder = new TopologyBuilder();
-        SchedulingTopologyBuilder builder = new SchedulingTopologyBuilder();
+        TopologyBuilder builder = new TopologyBuilder();
+        SchedulingTopologyBuilder builder=new SchedulingTopologyBuilder();
         JoinBolt joinerR = new JoinBolt("R");
         JoinBolt joinerS = new JoinBolt("S");
 
@@ -108,24 +112,24 @@ public class KafkaTopology {
                 .shuffleGrouping(KAFKA_SPOUT_ID_R)
                 .shuffleGrouping(KAFKA_SPOUT_ID_S);
 
-        builder.setDifferentiatedScheduling(SHUFFLE_BOLT_ID, Constraints.relFileds, Constraints.wordFileds);
+	builder.setDifferentiatedScheduling(SHUFFLE_BOLT_ID, Constraints.relFileds, Constraints.wordFileds);
 
-        builder.setBolt(JOINER_R_BOLT_ID, joinerR, _args.numPartitionsR)
-                .fieldsGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.nohotRFileds, new Fields(Constraints.wordFileds))
-                .fieldsGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.nohotSFileds, new Fields(Constraints.wordFileds))
-                .shuffleGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.hotRFileds)
-                .allGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.hotSFileds);
+      builder.setBolt(JOINER_R_BOLT_ID, joinerR, _args.numPartitionsR)
+                    .fieldsGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.nohotRFileds, new Fields(Constraints.wordFileds))
+                    .fieldsGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.nohotSFileds, new Fields(Constraints.wordFileds))
+                    .shuffleGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.hotRFileds)
+                    .allGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.hotSFileds);
 
-        builder.setBolt(JOINER_S_BOLT_ID, joinerS, _args.numPartitionsS)
-                .fieldsGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.nohotSFileds, new Fields(Constraints.wordFileds))
-                .fieldsGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.nohotRFileds, new Fields(Constraints.wordFileds))
-                .shuffleGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.hotSFileds)
-                .allGrouping(SCHEDULER_BOLT_ID + builder.getSchedulingNum(), Constraints.hotRFileds);
+       builder.setBolt(JOINER_S_BOLT_ID, joinerS, _args.numPartitionsS)
+                    .fieldsGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.nohotSFileds, new Fields(Constraints.wordFileds))
+                    .fieldsGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.nohotRFileds, new Fields(Constraints.wordFileds))
+                    .shuffleGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.hotSFileds)
+                    .allGrouping(SCHEDULER_BOLT_ID+builder.getSchedulingNum(), Constraints.hotRFileds);
+
 
         builder.setBolt(POST_PROCESS_BOLT_ID, new PostProcessBolt(_args.numPartitionsR + _args.numPartitionsS), 1)
-                .globalGrouping(JOINER_R_BOLT_ID, JOINER_TO_POST_STREAM_ID)
-                .globalGrouping(JOINER_S_BOLT_ID, JOINER_TO_POST_STREAM_ID);
-
+            .globalGrouping(JOINER_R_BOLT_ID, JOINER_TO_POST_STREAM_ID)
+            .globalGrouping(JOINER_S_BOLT_ID, JOINER_TO_POST_STREAM_ID);
         return builder.createTopology();
     }
 
@@ -171,6 +175,29 @@ public class KafkaTopology {
                 .setPrintStream(System.out);
         _args.logArgs(output);
         output.endOfFile();
+    }
+
+    public static void main(String[] args) throws Exception {
+        int rc = (new KafkaTopology()).run(args);
+        LOG.info("return code: " + rc);
+    }
+
+
+    public static KafkaSpoutConfig<String, String> getKafkaSpoutConfig(String bootstrapServers,String topic, String groupid) {
+        ByTopicRecordTranslator<String, String> trans = new ByTopicRecordTranslator<>(
+                (r) -> new Values(r.topic(), r.partition(), r.offset(), r.key(), r.value()),
+                new Fields("topic", "partition", "offset", "key", "value"));
+        return KafkaSpoutConfig.builder(bootstrapServers, new String[]{topic})
+                .setProp(ConsumerConfig.GROUP_ID_CONFIG, groupid)
+                .setRetry(getRetryService())
+                .setRecordTranslator(trans)
+                .setFirstPollOffsetStrategy(EARLIEST)
+                .setProcessingGuarantee(KafkaSpoutConfig.ProcessingGuarantee.AT_MOST_ONCE)
+                .build();
+    }
+    public static KafkaSpoutRetryService getRetryService() {
+        return new KafkaSpoutRetryExponentialBackoff(KafkaSpoutRetryExponentialBackoff.TimeInterval.microSeconds(0),
+                KafkaSpoutRetryExponentialBackoff.TimeInterval.milliSeconds(2), Integer.MAX_VALUE, KafkaSpoutRetryExponentialBackoff.TimeInterval.seconds(10));
     }
 
 }

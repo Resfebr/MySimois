@@ -2,11 +2,13 @@ package com.basic.core.util;
 
 import java.util.List;
 
-public class CastUtils {
+public class CastUtils
+{
     public static String getString(Object o) {
         if (o == null) {
             return null;
-        } else {
+        }
+        else {
             return o.toString();
         }
     }
@@ -18,13 +20,17 @@ public class CastUtils {
     public static int getInt(Object o) {
         if (o instanceof Long) {
             return ((Long) o).intValue();
-        } else if (o instanceof Integer) {
+        }
+        else if (o instanceof Integer) {
             return ((Integer) o).intValue();
-        } else if (o instanceof Short) {
+        }
+        else if (o instanceof Short) {
             return ((Short) o).intValue();
-        } else if (o instanceof String) {
+        }
+        else if (o instanceof String) {
             return Integer.parseInt((String) o);
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Failed to convert " + o
                     + " to int");
         }
@@ -37,13 +43,17 @@ public class CastUtils {
     public static long getLong(Object o) {
         if (o instanceof Long) {
             return ((Long) o).longValue();
-        } else if (o instanceof Integer) {
+        }
+        else if (o instanceof Integer) {
             return ((Integer) o).longValue();
-        } else if (o instanceof Short) {
+        }
+        else if (o instanceof Short) {
             return ((Short) o).longValue();
-        } else if (o instanceof String) {
+        }
+        else if (o instanceof String) {
             return Long.parseLong((String) o);
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Failed to convert " + o
                     + " to long");
         }
@@ -56,9 +66,11 @@ public class CastUtils {
     public static boolean getBoolean(Object o) {
         if (o instanceof Boolean) {
             return ((Boolean) o).booleanValue();
-        } else if (o instanceof String) {
+        }
+        else if (o instanceof String) {
             return Boolean.parseBoolean((String) o);
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Failed to convert " + o
                     + " to boolean");
         }
@@ -71,7 +83,8 @@ public class CastUtils {
     public static List getList(Object o) {
         if (o instanceof List) {
             return (List) o;
-        } else {
+        }
+        else {
             throw new IllegalArgumentException("Failed to convert " + o
                     + " to list of objects");
         }

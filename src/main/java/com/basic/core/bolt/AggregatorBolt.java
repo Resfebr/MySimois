@@ -1,7 +1,8 @@
 package com.basic.core.bolt;
 
-import com.basic.core.util.FileWriter;
-import com.basic.core.util.Stopwatch;
+import java.util.Map;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -9,13 +10,9 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
-
-import java.util.Map;
-
-import static com.basic.core.util.CastUtils.*;
-import static com.google.common.collect.Maps.newHashMap;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.slf4j.LoggerFactory.getLogger;
+
+import static com.google.common.collect.Maps.newHashMap;
 
 //import backtype.storm.task.OutputCollector;
 //import backtype.storm.task.TopologyContext;
@@ -23,8 +20,14 @@ import static org.slf4j.LoggerFactory.getLogger;
 //import backtype.storm.topology.base.BaseRichBolt;
 //import backtype.storm.tuple.Tuple;
 //import backtype.storm.tuple.Values;
+import com.basic.core.util.FileWriter;
+import com.basic.core.util.Stopwatch;
+import static com.basic.core.util.CastUtils.getBoolean;
+import static com.basic.core.util.CastUtils.getLong;
+import static com.basic.core.util.CastUtils.getString;
 
-class AggregateBolt extends BaseRichBolt {
+public class AggregateBolt extends BaseRichBolt
+{
     private static final Logger LOG = getLogger(AggregateBolt.class);
 
     private FileWriter _output;
@@ -44,7 +47,7 @@ class AggregateBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map conf, TopologyContext context,
-                        OutputCollector collector) {
+            OutputCollector collector) {
         String outputDir = getString(conf.get("outputDir"));
         String prefix = "a" + context.getThisTaskId();
         _output = (new FileWriter(outputDir, prefix, "out")).setFlushSize(10)
@@ -127,7 +130,8 @@ class AggregateBolt extends BaseRichBolt {
         if (currTime >= _triggerEmitInSeconds) {
             _triggerEmitInSeconds = currTime + _aggReportInSeconds;
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }

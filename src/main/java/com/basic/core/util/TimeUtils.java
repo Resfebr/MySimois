@@ -2,9 +2,13 @@ package com.basic.core.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
-public class TimeUtils {
+import org.apache.commons.lang3.StringUtils;
+
+public class TimeUtils
+{
     private static final DateFormat defaultDateFormat = new SimpleDateFormat(
             "yyyyMMdd_HHmmss");
 

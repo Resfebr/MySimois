@@ -4,8 +4,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.*;
-
 public class GeoHash {
 
     protected static final byte[] characters = {
@@ -16,30 +16,28 @@ public class GeoHash {
             // 16   17   18   19   20   21   22   23
             'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r',
             // 24   25   26   27   28   29   30   31
-            's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+            's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
     protected static final byte[] map = new byte['z' + 1];
-    /**
-     * number of bits per character
-     */
-    protected static final int BITS_PER_CHARACTER = 5;
-    protected static final int MAX_BITS = 60;
-    protected static final double[] LATITUDE_RANGE = {-90.0, 90.0};
-    protected static final double[] LONGITUDE_RANGE = {-180.0, 180.0};
-
     static {
         for (byte i = 0; i < characters.length; i++)
             map[characters[i]] = i;
     }
 
+    /** number of bits per character */
+    protected static final int      BITS_PER_CHARACTER = 5;
+    protected static final int      MAX_BITS = 60;
+    protected static final double[] LATITUDE_RANGE = { -90.0, 90.0 };
+    protected static final double[] LONGITUDE_RANGE = { -180.0, 180.0 };
+
     public final double lat, lon;
     /**
      * The precision of the coordinate. Must be in the interval [1-12]
      */
-    public final int precision;
+    public final int    precision;
     /**
      * The bit representation of the (LAT,LON)-pair
      */
-    public final long bitValue;
+    public final long   bitValue;
     /**
      * The encoded representation of the coordinate
      */
@@ -51,6 +49,20 @@ public class GeoHash {
         this.precision = hash.length;
         this.bitValue = bitValue;
         this.hash = hash;
+    }
+
+    /**
+     * @return The encoded geohash
+     */
+    public final String toHashString() {
+        return new String(hash);
+    }
+
+    /**
+     * @return The binary representation of the coordinate
+     */
+    public final String toBinaryRepresentation() {
+        return new String(binaryRepresentation(bitValue, precision));
     }
 
     public static final GeoHash decode(final String hash) {
@@ -78,10 +90,10 @@ public class GeoHash {
             evenbit = !evenbit;
         }
 
-        final double latitude = decodeCoordinate(lat, new GeoHash.Coordinate(0.0, LATITUDE_RANGE, calculateLatitudeBits(hash.length))).coord;
-        final double longitude = decodeCoordinate(lon, new GeoHash.Coordinate(0.0, LONGITUDE_RANGE, calculateLongitudeBits(hash.length))).coord;
+        final double latitude  = decodeCoordinate( lat, new GeoHash.Coordinate(0.0, LATITUDE_RANGE, calculateLatitudeBits(hash.length))).coord;
+        final double longitude = decodeCoordinate( lon, new GeoHash.Coordinate(0.0, LONGITUDE_RANGE, calculateLongitudeBits(hash.length))).coord;
 
-        return new GeoHash(latitude, longitude, binary, hash);
+        return new GeoHash( latitude , longitude, binary, hash);
     }
 
     protected static final int calculateLatitudeBits(final int precision) {
@@ -104,8 +116,8 @@ public class GeoHash {
      * Extracts the even bits, starting with index 1
      * Example:
      * 00010110 = 0x16
-     * | | | |
-     * 0 1 1 0 = 0x06
+     *  | | | |
+     *  0 1 1 0 = 0x06
      */
     protected static final int extractEvenBits(int value, final byte b) {
         value <<= 3;
@@ -149,11 +161,14 @@ public class GeoHash {
     /**
      * Encodes the coordinate-pair into the hash representation
      *
-     * @param lat       Latitude coordinate
-     * @param lon       Longitude coordinate
-     * @param precision Geohash length must be in the interval [1-12]
+     * @param lat
+     *            Latitude coordinate
+     * @param lon
+     *            Longitude coordinate
+     * @param precision
+     *            Geohash length must be in the interval [1-12]
      * @return the GeoHash object holding information about the coordinates and
-     * hashed values
+     *         hashed values
      */
     public static final GeoHash encode(final double lat, final double lon, int precision) {
         if (precision < 1) precision = 1;
@@ -219,59 +234,6 @@ public class GeoHash {
         return new String(rep);
     }
 
-    public static void main(String[] argc) {
-        System.out.println(GeoHash.encode(30.703971, 104.094640, 7).toHashString());
-        PriorityQueue<Pair> pq = new PriorityQueue<Pair>(new Comparator<Pair>() {
-            @Override
-            public int compare(Pair o1, Pair o2) {
-                if ((Long) o1.getLeft() > (Long) o2.getLeft()) {
-                    return -1;
-                } else if ((Long) o1.getLeft() < (Long) o2.getLeft()) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-        pq.add(ImmutablePair.of(102L, "abc"));
-        pq.add(ImmutablePair.of(122L, "abc"));
-        pq.add(ImmutablePair.of(322L, "abc"));
-        while (!pq.isEmpty()) {
-            System.out.println(pq.poll().getLeft());
-        }
-
-        LinkedList<Integer> lst = new LinkedList<Integer>();
-        lst.add(1);
-        lst.add(2);
-        lst.add(3);
-        lst.add(5);
-        lst.add(1);
-        lst.add(2);
-        lst.add(3);
-        lst.add(5);
-        for (Integer i : lst) {
-            if (i.equals(1)) {
-                lst.remove(i);
-            }
-        }
-        for (Integer i : lst) {
-            System.out.print(i + " ");
-        }
-    }
-
-    /**
-     * @return The encoded geohash
-     */
-    public final String toHashString() {
-        return new String(hash);
-    }
-
-    /**
-     * @return The binary representation of the coordinate
-     */
-    public final String toBinaryRepresentation() {
-        return new String(binaryRepresentation(bitValue, precision));
-    }
-
     @Override
     public String toString() {
         return String.format("%f %f %d %s", this.lat, this.lon, this.bitValue, binaryRepresentation(this.bitValue, this.precision));
@@ -305,21 +267,51 @@ public class GeoHash {
         }
     }
 
-    static class A<K, E> {
-        private Map<K, E> _map;
-
-        public A(Map<K, E> _map) {
+    static class A <K,E>{
+        private Map<K,E> _map;
+        public A(Map<K,E> _map){
             this._map = _map;
         }
-
-        public String toString() {
+        public String toString(){
             StringBuffer sb = new StringBuffer();
             sb.append("Object: \n");
-            for (Map.Entry<K, E> e : this._map.entrySet()) {
+            for(Map.Entry<K, E> e : this._map.entrySet()){
                 sb.append(e);
                 sb.append("\n");
             }
             return sb.toString();
+        }
+    }
+    public static void main(String []argc){
+        System.out.println(GeoHash.encode(30.703971, 104.094640, 7).toHashString());
+        PriorityQueue<Pair> pq = new PriorityQueue<Pair>(new Comparator<Pair>() {
+            @Override
+            public int compare(Pair o1, Pair o2) {
+                if((Long)o1.getLeft() > (Long)o2.getLeft()){
+                    return -1;
+                }
+                else if((Long)o1.getLeft() < (Long)o2.getLeft()){
+                    return 1;
+                }
+                return 0;
+            }
+        });
+        pq.add(ImmutablePair.of(102L, "abc"));
+        pq.add(ImmutablePair.of(122L, "abc"));
+        pq.add(ImmutablePair.of(322L, "abc"));
+        while(!pq.isEmpty()){
+            System.out.println(pq.poll().getLeft());
+        }
+
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        lst.add(1);lst.add(2);lst.add(3);lst.add(5);lst.add(1);lst.add(2);lst.add(3);lst.add(5);
+        for(Integer i : lst){
+            if(i.equals(1)){
+                lst.remove(i);
+            }
+        }
+        for(Integer i : lst){
+            System.out.print(i + " ");
         }
     }
 }

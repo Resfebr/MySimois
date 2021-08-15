@@ -1,13 +1,13 @@
 package com.basic.core.util;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-
 import java.util.List;
 
+import com.google.common.base.Splitter;
 import static com.google.common.base.Preconditions.checkState;
+import com.google.common.collect.ImmutableList;
 
-public class SchemaUtils {
+public class SchemaUtils
+{
     public static List<String> parseSchema(String schemaDesp) {
         final Splitter splitter = Splitter.on(',').trimResults();
 

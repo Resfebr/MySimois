@@ -18,27 +18,25 @@
 
 package com.basic.core.util;
 
-import com.google.common.base.Ticker;
-
 import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.DAYS;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
+import com.google.common.base.Ticker;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static java.util.concurrent.TimeUnit.*;
 
-public final class Stopwatch {
+public final class Stopwatch
+{
     private final Ticker ticker;
     private boolean isRunning;
     private long elapsedNanos;
     private long startTick;
-
-    private Stopwatch() {
-        this(Ticker.systemTicker());
-    }
-
-    private Stopwatch(Ticker ticker) {
-        this.ticker = checkNotNull(ticker, "ticker");
-    }
 
     public static Stopwatch createUnstarted() {
         return new Stopwatch();
@@ -56,47 +54,12 @@ public final class Stopwatch {
         return new Stopwatch(ticker).start();
     }
 
-    private static TimeUnit chooseUnit(long nanos) {
-        if (DAYS.convert(nanos, NANOSECONDS) > 0) {
-            return DAYS;
-        }
-        if (HOURS.convert(nanos, NANOSECONDS) > 0) {
-            return HOURS;
-        }
-        if (MINUTES.convert(nanos, NANOSECONDS) > 0) {
-            return MINUTES;
-        }
-        if (SECONDS.convert(nanos, NANOSECONDS) > 0) {
-            return SECONDS;
-        }
-        if (MILLISECONDS.convert(nanos, NANOSECONDS) > 0) {
-            return MILLISECONDS;
-        }
-        if (MICROSECONDS.convert(nanos, NANOSECONDS) > 0) {
-            return MICROSECONDS;
-        }
-        return NANOSECONDS;
+    private Stopwatch() {
+        this(Ticker.systemTicker());
     }
 
-    private static String abbreviate(TimeUnit unit) {
-        switch (unit) {
-            case NANOSECONDS:
-                return "ns";
-            case MICROSECONDS:
-                return "\u03bcs";
-            case MILLISECONDS:
-                return "ms";
-            case SECONDS:
-                return "s";
-            case MINUTES:
-                return "min";
-            case HOURS:
-                return "h";
-            case DAYS:
-                return "d";
-            default:
-                throw new AssertionError();
-        }
+    private Stopwatch(Ticker ticker) {
+        this.ticker = checkNotNull(ticker, "ticker");
     }
 
     public boolean isRunning() {
@@ -142,5 +105,48 @@ public final class Stopwatch {
 
         // Too bad this functionality is not exposed as a regular method call
         return String.format("%.4g %s", value, abbreviate(unit));
+    }
+
+    private static TimeUnit chooseUnit(long nanos) {
+        if (DAYS.convert(nanos, NANOSECONDS) > 0) {
+            return DAYS;
+        }
+        if (HOURS.convert(nanos, NANOSECONDS) > 0) {
+            return HOURS;
+        }
+        if (MINUTES.convert(nanos, NANOSECONDS) > 0) {
+            return MINUTES;
+        }
+        if (SECONDS.convert(nanos, NANOSECONDS) > 0) {
+            return SECONDS;
+        }
+        if (MILLISECONDS.convert(nanos, NANOSECONDS) > 0) {
+            return MILLISECONDS;
+        }
+        if (MICROSECONDS.convert(nanos, NANOSECONDS) > 0) {
+            return MICROSECONDS;
+        }
+        return NANOSECONDS;
+    }
+
+    private static String abbreviate(TimeUnit unit) {
+        switch (unit) {
+        case NANOSECONDS:
+            return "ns";
+        case MICROSECONDS:
+            return "\u03bcs";
+        case MILLISECONDS:
+            return "ms";
+        case SECONDS:
+            return "s";
+        case MINUTES:
+            return "min";
+        case HOURS:
+            return "h";
+        case DAYS:
+            return "d";
+        default:
+            throw new AssertionError();
+        }
     }
 }

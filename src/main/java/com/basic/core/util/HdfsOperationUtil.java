@@ -10,8 +10,9 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
  */
 public class HdfsOperationUtil {
 
-    private static final String HADOOP_URL = "hdfs://192.168.223.202:9000";// default HDFS configuration
     private static Configuration conf = new Configuration();
+    private static final String HADOOP_URL="hdfs://192.168.223.202:9000";// default HDFS configuration
+
     private static FileSystem fs;
 
     private static DistributedFileSystem hdfs;
@@ -20,7 +21,7 @@ public class HdfsOperationUtil {
         try {
             FileSystem.setDefaultUri(conf, HADOOP_URL);
             fs = FileSystem.get(conf);
-            hdfs = (DistributedFileSystem) fs;
+            hdfs = (DistributedFileSystem)fs;
         } catch (Exception e) {
             e.printStackTrace();
         }

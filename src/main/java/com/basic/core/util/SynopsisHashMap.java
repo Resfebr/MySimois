@@ -1,5 +1,4 @@
 package com.basic.core.util;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,36 +9,34 @@ import java.util.*;
  * Created by windy on 2019/1/2.
  */
 
-public class SynopsisHashMap<K, V>
-        extends AbstractMap<K, V>
-        implements Map<K, V>, Cloneable, Serializable {
+public class SynopsisHashMap<K,V>
+    extends AbstractMap<K,V>
+    implements Map<K,V>, Cloneable, Serializable
+{
     static final int DEFAULT_INITIAL_CAPACITY = 16;
     static final int MAXIMUM_CAPACITY = 1 << 30;
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
-    private static final long serialVersionUID = 362498820763181265L;
-    final float loadFactor;
     transient Entry[] table;
     transient int size;
     int threshold;
+    final float loadFactor;
     transient volatile int modCount;
-    private transient Set<Map.Entry<K, V>> entrySet = null;
-
     public SynopsisHashMap(int initialCapacity, float loadFactor) {
         if (initialCapacity < 0)
             throw new IllegalArgumentException("Illegal initial capacity: " +
-                    initialCapacity);
+                                               initialCapacity);
         if (initialCapacity > MAXIMUM_CAPACITY)
             initialCapacity = MAXIMUM_CAPACITY;
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new IllegalArgumentException("Illegal load factor: " +
-                    loadFactor);
+                                               loadFactor);
         // Find a power of 2 >= initialCapacity
         int capacity = 1;
         while (capacity < initialCapacity)
             capacity <<= 1;
 
         this.loadFactor = loadFactor;
-        threshold = (int) (capacity * loadFactor);
+        threshold = (int)(capacity * loadFactor);
         table = new Entry[capacity];
         init();
     }
@@ -50,15 +47,18 @@ public class SynopsisHashMap<K, V>
 
     public SynopsisHashMap() {
         this.loadFactor = DEFAULT_LOAD_FACTOR;
-        threshold = (int) (DEFAULT_INITIAL_CAPACITY * DEFAULT_LOAD_FACTOR);
+        threshold = (int)(DEFAULT_INITIAL_CAPACITY * DEFAULT_LOAD_FACTOR);
         table = new Entry[DEFAULT_INITIAL_CAPACITY];
         init();
     }
 
     public SynopsisHashMap(Map<? extends K, ? extends V> m) {
         this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1,
-                DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
+                      DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR);
         putAllForCreate(m);
+    }
+
+    void init() {
     }
 
     static int hash(int h) {
@@ -67,10 +67,7 @@ public class SynopsisHashMap<K, V>
     }
 
     static int indexFor(int h, int length) {
-        return h & (length - 1);
-    }
-
-    void init() {
+        return h & (length-1);
     }
 
     public int size() {
@@ -85,7 +82,7 @@ public class SynopsisHashMap<K, V>
         if (key == null)
             return getForNullKey();
         int hash = hash(key.hashCode());
-        for (Entry<K, V> e = table[indexFor(hash, table.length)];
+        for (Entry<K,V> e = table[indexFor(hash, table.length)];
              e != null;
              e = e.next) {
             Object k;
@@ -96,18 +93,18 @@ public class SynopsisHashMap<K, V>
     }
 
     public K getrandomkey() {
-        int i;
-        Entry<K, V> e = null;
-        Random rand = new Random();
-        while (e == null) {
-            i = rand.nextInt(table.length);
-            e = table[i];
-        }
-        return e.key;
-    }
+	  int i;
+	  Entry<K,V> e = null;
+	  Random rand =new Random();
+	  while (e==null) {
+          i = rand.nextInt(table.length);
+          e = table[i];
+      }
+	    return e.key;
+	}
 
     private V getForNullKey() {
-        for (Entry<K, V> e = table[0]; e != null; e = e.next) {
+        for (Entry<K,V> e = table[0]; e != null; e = e.next) {
             if (e.key == null)
                 return e.value;
         }
@@ -118,14 +115,14 @@ public class SynopsisHashMap<K, V>
         return getEntry(key) != null;
     }
 
-    final Entry<K, V> getEntry(Object key) {
+    final Entry<K,V> getEntry(Object key) {
         int hash = (key == null) ? 0 : hash(key.hashCode());
-        for (Entry<K, V> e = table[indexFor(hash, table.length)];
+        for (Entry<K,V> e = table[indexFor(hash, table.length)];
              e != null;
              e = e.next) {
             Object k;
             if (e.hash == hash &&
-                    ((k = e.key) == key || (key != null && key.equals(k))))
+                ((k = e.key) == key || (key != null && key.equals(k))))
                 return e;
         }
         return null;
@@ -136,7 +133,7 @@ public class SynopsisHashMap<K, V>
             return putForNullKey(value);
         int hash = hash(key.hashCode());
         int i = indexFor(hash, table.length);
-        for (Entry<K, V> e = table[i]; e != null; e = e.next) {
+        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
             Object k;
             if (e.hash == hash && ((k = e.key) == key || key.equals(k))) {
                 V oldValue = e.value;
@@ -151,7 +148,7 @@ public class SynopsisHashMap<K, V>
     }
 
     private V putForNullKey(V value) {
-        for (Entry<K, V> e = table[0]; e != null; e = e.next) {
+        for (Entry<K,V> e = table[0]; e != null; e = e.next) {
             if (e.key == null) {
                 V oldValue = e.value;
                 e.value = value;
@@ -167,10 +164,10 @@ public class SynopsisHashMap<K, V>
     private void putForCreate(K key, V value) {
         int hash = (key == null) ? 0 : hash(key.hashCode());
         int i = indexFor(hash, table.length);
-        for (Entry<K, V> e = table[i]; e != null; e = e.next) {
+        for (Entry<K,V> e = table[i]; e != null; e = e.next) {
             Object k;
             if (e.hash == hash &&
-                    ((k = e.key) == key || (key != null && key.equals(k)))) {
+                ((k = e.key) == key || (key != null && key.equals(k)))) {
                 e.value = value;
                 return;
             }
@@ -196,18 +193,18 @@ public class SynopsisHashMap<K, V>
         Entry[] newTable = new Entry[newCapacity];
         transfer(newTable);
         table = newTable;
-        threshold = (int) (newCapacity * loadFactor);
+        threshold = (int)(newCapacity * loadFactor);
     }
 
     void transfer(Entry[] newTable) {
         Entry[] src = table;
         int newCapacity = newTable.length;
         for (int j = 0; j < src.length; j++) {
-            Entry<K, V> e = src[j];
+            Entry<K,V> e = src[j];
             if (e != null) {
                 src[j] = null;
                 do {
-                    Entry<K, V> next = e.next;
+                    Entry<K,V> next = e.next;
                     int i = indexFor(e.hash, newCapacity);
                     e.next = newTable[i];
                     newTable[i] = e;
@@ -222,7 +219,7 @@ public class SynopsisHashMap<K, V>
         if (numKeysToBeAdded == 0)
             return;
         if (numKeysToBeAdded > threshold) {
-            int targetCapacity = (int) (numKeysToBeAdded / loadFactor + 1);
+            int targetCapacity = (int)(numKeysToBeAdded / loadFactor + 1);
             if (targetCapacity > MAXIMUM_CAPACITY)
                 targetCapacity = MAXIMUM_CAPACITY;
             int newCapacity = table.length;
@@ -238,21 +235,21 @@ public class SynopsisHashMap<K, V>
     }
 
     public V remove(Object key) {
-        Entry<K, V> e = removeEntryForKey(key);
+        Entry<K,V> e = removeEntryForKey(key);
         return (e == null ? null : e.value);
     }
 
-    final Entry<K, V> removeEntryForKey(Object key) {
+    final Entry<K,V> removeEntryForKey(Object key) {
         int hash = (key == null) ? 0 : hash(key.hashCode());
         int i = indexFor(hash, table.length);
-        Entry<K, V> prev = table[i];
-        Entry<K, V> e = prev;
+        Entry<K,V> prev = table[i];
+        Entry<K,V> e = prev;
 
         while (e != null) {
-            Entry<K, V> next = e.next;
+            Entry<K,V> next = e.next;
             Object k;
             if (e.hash == hash &&
-                    ((k = e.key) == key || (key != null && key.equals(k)))) {
+                ((k = e.key) == key || (key != null && key.equals(k)))) {
                 modCount++;
                 size--;
                 if (prev == e)
@@ -269,19 +266,19 @@ public class SynopsisHashMap<K, V>
         return e;
     }
 
-    final Entry<K, V> removeMapping(Object o) {
+    final Entry<K,V> removeMapping(Object o) {
         if (!(o instanceof Map.Entry))
             return null;
 
-        Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
+        Map.Entry<K,V> entry = (Map.Entry<K,V>) o;
         Object key = entry.getKey();
         int hash = (key == null) ? 0 : hash(key.hashCode());
         int i = indexFor(hash, table.length);
-        Entry<K, V> prev = table[i];
-        Entry<K, V> e = prev;
+        Entry<K,V> prev = table[i];
+        Entry<K,V> e = prev;
 
         while (e != null) {
-            Entry<K, V> next = e.next;
+            Entry<K,V> next = e.next;
             if (e.hash == hash && e.equals(entry)) {
                 modCount++;
                 size--;
@@ -312,8 +309,8 @@ public class SynopsisHashMap<K, V>
             return containsNullValue();
 
         Entry[] tab = table;
-        for (int i = 0; i < tab.length; i++)
-            for (Entry e = tab[i]; e != null; e = e.next)
+        for (int i = 0; i < tab.length ; i++)
+            for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (value.equals(e.value))
                     return true;
         return false;
@@ -321,17 +318,17 @@ public class SynopsisHashMap<K, V>
 
     private boolean containsNullValue() {
         Entry[] tab = table;
-        for (int i = 0; i < tab.length; i++)
-            for (Entry e = tab[i]; e != null; e = e.next)
+        for (int i = 0; i < tab.length ; i++)
+            for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (e.value == null)
                     return true;
         return false;
     }
 
     public Object clone() {
-        SynopsisHashMap<K, V> result = null;
+        SynopsisHashMap<K,V> result = null;
         try {
-            result = (SynopsisHashMap<K, V>) super.clone();
+            result = (SynopsisHashMap<K,V>)super.clone();
         } catch (CloneNotSupportedException e) {
             // assert false;
         }
@@ -345,131 +342,32 @@ public class SynopsisHashMap<K, V>
         return result;
     }
 
-    void addEntry(int hash, K key, V value, int bucketIndex) {
-        Entry<K, V> e = table[bucketIndex];
-        table[bucketIndex] = new Entry<K, V>(hash, key, value, e);
-        // size++;
-        if (size++ >= threshold)
-            resize(2 * table.length);
-    }
-
-    void createEntry(int hash, K key, V value, int bucketIndex) {
-        Entry<K, V> e = table[bucketIndex];
-        table[bucketIndex] = new Entry<K, V>(hash, key, value, e);
-        size++;
-    }
-
-    // Subclass overrides these to alter behavior of views' iterator() method
-    Iterator<K> newKeyIterator() {
-        return new KeyIterator();
-    }
-
-    Iterator<V> newValueIterator() {
-        return new ValueIterator();
-    }
-
-    Iterator<Map.Entry<K, V>> newEntryIterator() {
-        return new EntryIterator();
-    }
-
-    public Set<Map.Entry<K, V>> entrySet() {
-        return entrySet0();
-    }
-
-    private Set<Map.Entry<K, V>> entrySet0() {
-        Set<Map.Entry<K, V>> es = entrySet;
-        return es != null ? es : (entrySet = new EntrySet());
-    }
-
-    private void writeObject(ObjectOutputStream s)
-            throws IOException {
-        Iterator<Map.Entry<K, V>> i =
-                (size > 0) ? entrySet0().iterator() : null;
-
-        // Write out the threshold, loadfactor, and any hidden stuff
-        s.defaultWriteObject();
-
-        // Write out number of buckets
-        s.writeInt(table.length);
-
-        // Write out size (number of Mappings)
-        s.writeInt(size);
-
-        // Write out keys and values (alternating)
-        if (i != null) {
-            while (i.hasNext()) {
-                Map.Entry<K, V> e = i.next();
-                s.writeObject(e.getKey());
-                s.writeObject(e.getValue());
-            }
-        }
-    }
-
-    private void readObject(ObjectInputStream s)
-            throws IOException, ClassNotFoundException {
-        // Read in the threshold, loadfactor, and any hidden stuff
-        s.defaultReadObject();
-
-        // Read in number of buckets and allocate the bucket array;
-        int numBuckets = s.readInt();
-        table = new Entry[numBuckets];
-
-        init();  // Give subclass a chance to do its thing.
-
-        // Read in size (number of Mappings)
-        int size = s.readInt();
-
-        // Read the keys and values, and put the mappings in the HashMap
-        for (int i = 0; i < size; i++) {
-            K key = (K) s.readObject();
-            V value = (V) s.readObject();
-            putForCreate(key, value);
-        }
-    }
-
-    public int capacity() {
-        return table.length;
-    }
-
-    public float loadFactor() {
-        return loadFactor;
-    }
-
-    public int getLength() {
-        return table.length;
-    }
-
-    static class Entry<K, V> implements Map.Entry<K, V> {
+    static class Entry<K,V> implements Map.Entry<K,V> {
         final K key;
-        final int hash;
         V value;
-        Entry<K, V> next;
-
-        Entry(int h, K k, V v, Entry<K, V> n) {
+        Entry<K,V> next;
+        final int hash;
+        Entry(int h, K k, V v, Entry<K,V> n) {
             value = v;
             next = n;
             key = k;
             hash = h;
         }
-
         public final K getKey() {
             return key;
         }
-
         public final V getValue() {
             return value;
         }
-
         public final V setValue(V newValue) {
             V oldValue = value;
             value = newValue;
             return oldValue;
         }
-
         public final boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            Map.Entry e = (Map.Entry) o;
+            Map.Entry e = (Map.Entry)o;
             Object k1 = getKey();
             Object k2 = e.getKey();
             if (k1 == k2 || (k1 != null && k1.equals(k2))) {
@@ -480,29 +378,38 @@ public class SynopsisHashMap<K, V>
             }
             return false;
         }
-
         public final int hashCode() {
-            return (key == null ? 0 : key.hashCode()) ^
-                    (value == null ? 0 : value.hashCode());
+            return (key==null   ? 0 : key.hashCode()) ^
+                   (value==null ? 0 : value.hashCode());
         }
-
         public final String toString() {
             return getKey() + "=" + getValue();
         }
-
-        void recordAccess(SynopsisHashMap<K, V> m) {
+        void recordAccess(SynopsisHashMap<K,V> m) {
         }
-
-        void recordRemoval(SynopsisHashMap<K, V> m) {
+        void recordRemoval(SynopsisHashMap<K,V> m) {
         }
     }
 
+    void addEntry(int hash, K key, V value, int bucketIndex) {
+        Entry<K,V> e = table[bucketIndex];
+        table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
+       // size++;
+       if (size++ >= threshold)
+            resize(2 * table.length);
+    }
+
+    void createEntry(int hash, K key, V value, int bucketIndex) {
+        Entry<K,V> e = table[bucketIndex];
+        table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
+        size++;
+    }
+
     public abstract class HashIterator<E> implements Iterator<E> {
-        Entry<K, V> next;        // next entry to return
+        Entry<K,V> next;        // next entry to return
         int expectedModCount;   // For fast-fail
         int index;              // current slot
-        Entry<K, V> current;     // current entry
-
+        Entry<K,V> current;     // current entry
         HashIterator() {
             expectedModCount = modCount;
             if (size > 0) { // advance to first entry
@@ -511,15 +418,13 @@ public class SynopsisHashMap<K, V>
                     ;
             }
         }
-
         public final boolean hasNext() {
             return next != null;
         }
-
-        final Entry<K, V> nextEntry() {
+        final Entry<K,V> nextEntry() {
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
-            Entry<K, V> e = next;
+            Entry<K,V> e = next;
             if (e == null)
                 throw new NoSuchElementException();
 
@@ -531,7 +436,6 @@ public class SynopsisHashMap<K, V>
             current = e;
             return e;
         }
-
         public void remove() {
             if (current == null)
                 throw new IllegalStateException();
@@ -556,35 +460,110 @@ public class SynopsisHashMap<K, V>
         }
     }
 
-    private final class EntryIterator extends HashIterator<Map.Entry<K, V>> {
-        public Map.Entry<K, V> next() {
+    private final class EntryIterator extends HashIterator<Map.Entry<K,V>> {
+        public Map.Entry<K,V> next() {
             return nextEntry();
         }
     }
 
-    private final class EntrySet extends AbstractSet<Map.Entry<K, V>> {
-        public Iterator<Map.Entry<K, V>> iterator() {
+    // Subclass overrides these to alter behavior of views' iterator() method
+    Iterator<K> newKeyIterator()   {
+        return new KeyIterator();
+    }
+    Iterator<V> newValueIterator()   {
+        return new ValueIterator();
+    }
+    Iterator<Map.Entry<K,V>> newEntryIterator()   {
+        return new EntryIterator();
+    }
+
+    private transient Set<Map.Entry<K,V>> entrySet = null;
+
+    public Set<Map.Entry<K,V>> entrySet() {
+        return entrySet0();
+    }
+
+    private Set<Map.Entry<K,V>> entrySet0() {
+        Set<Map.Entry<K,V>> es = entrySet;
+        return es != null ? es : (entrySet = new EntrySet());
+    }
+
+    private final class EntrySet extends AbstractSet<Map.Entry<K,V>> {
+        public Iterator<Map.Entry<K,V>> iterator() {
             return newEntryIterator();
         }
-
         public boolean contains(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
-            Map.Entry<K, V> e = (Map.Entry<K, V>) o;
-            Entry<K, V> candidate = getEntry(e.getKey());
+            Map.Entry<K,V> e = (Map.Entry<K,V>) o;
+            Entry<K,V> candidate = getEntry(e.getKey());
             return candidate != null && candidate.equals(e);
         }
-
         public boolean remove(Object o) {
             return removeMapping(o) != null;
         }
-
         public int size() {
             return size;
         }
-
         public void clear() {
             SynopsisHashMap.this.clear();
         }
+    }
+
+    private void writeObject(ObjectOutputStream s)
+        throws IOException
+    {
+        Iterator<Map.Entry<K,V>> i =
+            (size > 0) ? entrySet0().iterator() : null;
+
+        // Write out the threshold, loadfactor, and any hidden stuff
+        s.defaultWriteObject();
+
+        // Write out number of buckets
+        s.writeInt(table.length);
+
+        // Write out size (number of Mappings)
+        s.writeInt(size);
+
+        // Write out keys and values (alternating)
+        if (i != null) {
+            while (i.hasNext()) {
+                Map.Entry<K,V> e = i.next();
+                s.writeObject(e.getKey());
+                s.writeObject(e.getValue());
+            }
+        }
+    }
+
+    private static final long serialVersionUID = 362498820763181265L;
+
+    private void readObject(ObjectInputStream s)
+         throws IOException, ClassNotFoundException
+    {
+        // Read in the threshold, loadfactor, and any hidden stuff
+        s.defaultReadObject();
+
+        // Read in number of buckets and allocate the bucket array;
+        int numBuckets = s.readInt();
+        table = new Entry[numBuckets];
+
+        init();  // Give subclass a chance to do its thing.
+
+        // Read in size (number of Mappings)
+        int size = s.readInt();
+
+        // Read the keys and values, and put the mappings in the HashMap
+        for (int i=0; i<size; i++) {
+            K key = (K) s.readObject();
+            V value = (V) s.readObject();
+            putForCreate(key, value);
+        }
+    }
+
+    public	int   capacity()     { return table.length; }
+    public	float loadFactor()   { return loadFactor;   }
+
+    public int getLength(){
+        return table.length;
     }
 }

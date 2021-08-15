@@ -1,19 +1,20 @@
 package com.basic.core.util;
 
+import java.util.Map;
+
 import org.apache.storm.generated.Bolt;
 import org.apache.storm.generated.ComponentCommon;
 import org.apache.storm.generated.SpoutSpec;
 import org.apache.storm.generated.StormTopology;
 import org.slf4j.Logger;
 
-import java.util.Map;
-
 //import backtype.storm.generated.Bolt;
 //import backtype.storm.generated.ComponentCommon;
 //import backtype.storm.generated.SpoutSpec;
 //import backtype.storm.generated.StormTopology;
 
-public class LogHelpers {
+public class LogHelpers
+{
     public static void logTopology(Logger logger, StormTopology t) {
         logger.info("number of spouts: " + t.get_spouts_size());
 

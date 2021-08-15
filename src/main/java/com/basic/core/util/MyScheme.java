@@ -18,6 +18,10 @@ public class MyScheme implements Scheme {
     private static final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
     public static String STRING_SCHEME_KEY = "word";
 
+    public List<Object> deserialize(ByteBuffer bytes) {
+        return new Values(deserializeString(bytes));
+    }
+
     public static String deserializeString(ByteBuffer string) {
         if (string.hasArray()) {
             int base = string.arrayOffset();
@@ -25,10 +29,6 @@ public class MyScheme implements Scheme {
         } else {
             return new String(Utils.toByteArray(string), UTF8_CHARSET);
         }
-    }
-
-    public List<Object> deserialize(ByteBuffer bytes) {
-        return new Values(deserializeString(bytes));
     }
 
     public Fields getOutputFields() {
